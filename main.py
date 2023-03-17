@@ -41,16 +41,19 @@ class Client(discord.Client):
         input_content = message.content
         self.conversation_history.append({"role": "user", "content": input_content})
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=self.conversation_history
-        )
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=self.conversation_history
+            )
 
-        assistant_response = response["choices"][0]["message"]["content"]
-        self.conversation_history.append({"role": "assistant", "content": assistant_response})
-        parts = [assistant_response[i:i + 2000] for i in range(0, len(assistant_response), 2000)]
-        for index, part in enumerate(parts):
-            await message.channel.send(part)
+            assistant_response = response["choices"][0]["message"]["content"]
+            self.conversation_history.append({"role": "assistant", "content": assistant_response})
+            parts = [assistant_response[i:i + 2000] for i in range(0, len(assistant_response), 2000)]
+            for index, part in enumerate(parts):
+                await message.channel.send(part)
+        except AttributeError:
+            await message.channel.send("It looks like the OpenAI Chat comletion is not available. Maybe you need to updade your openai package? You can do that with ```pip install --upgrade openai```")
 
 
 alex_intents = discord.Intents.default()
