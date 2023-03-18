@@ -23,6 +23,15 @@ OPENAI_API_KEY = config["openai"][str("api_key")]
 
 GUILD = discord.Object(id=SERVER_ID)
 
+SYSTEM_MESSAGE = config["bot"]["system_message"]
+HISTORY_LENGTH = config["bot"]["history_length"]
+
+
+def trim_conversation_history(history, max_length=int(HISTORY_LENGTH)):
+    if len(history) > max_length:
+        history = history[-max_length:]
+    return history
+
 
 class Client(discord.Client):
     def __init__(self, *, intents: discord.Intents):
@@ -39,7 +48,10 @@ class Client(discord.Client):
             return
 
         input_content = message.content
+
+        self.conversation_history.append({"role": "system", "content": SYSTEM_MESSAGE})
         self.conversation_history.append({"role": "user", "content": input_content})
+        self.conversation_history = trim_conversation_history(self.conversation_history)
 
         try:
             response = openai.ChatCompletion.create(
@@ -49,6 +61,7 @@ class Client(discord.Client):
 
             assistant_response = response["choices"][0]["message"]["content"]
             self.conversation_history.append({"role": "assistant", "content": assistant_response})
+            self.conversation_history = trim_conversation_history(self.conversation_history)
             parts = [assistant_response[i:i + 2000] for i in range(0, len(assistant_response), 2000)]
             for index, part in enumerate(parts):
                 await message.channel.send(part)
