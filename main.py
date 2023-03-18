@@ -48,6 +48,7 @@ class Client(discord.Client):
             return
 
         input_content = message.content
+        print(f"{message.author}: {input_content}")
 
         self.conversation_history.append({"role": "system", "content": SYSTEM_MESSAGE})
         self.conversation_history.append({"role": "user", "content": input_content})
@@ -62,11 +63,28 @@ class Client(discord.Client):
             assistant_response = response["choices"][0]["message"]["content"]
             self.conversation_history.append({"role": "assistant", "content": assistant_response})
             self.conversation_history = trim_conversation_history(self.conversation_history)
+
+        except AttributeError:
+            assistant_response = "It looks like you might have to update your openai package. You can do that with ```pip install --upgrade openai```"
+        except ImportError:
+            assistant_response = "You might not have all required packages installed. Make sure you install the openai and discord package"
+        except openai.error.AuthenticationError:
+            assistant_response = "It looks like you don't have access to the gpt-4 model. Please make sure you have been invited by openai and double check your openai API key and organization ID"
+        except openai.error.RateLimitError:
+            assistant_response = "Your rate has been limited. This might be because of too many requests or because your rate limit has been reached."
+        except openai.error.Timeout:
+            assistant_response = "My response is taking too long and I have received a timeout error."
+        except openai.error.APIConnectionError:
+            assistant_response = "I can't connect to the OpenAI servers at the moment. Please try again later!"
+
+        if assistant_response is not None:
             parts = [assistant_response[i:i + 2000] for i in range(0, len(assistant_response), 2000)]
             for index, part in enumerate(parts):
-                await message.channel.send(part)
-        except AttributeError:
-            await message.channel.send("It looks like the OpenAI Chat comletion is not available. Maybe you need to updade your openai package? You can do that with ```pip install --upgrade openai```")
+                try:
+                    print(f"Alex: {part}")
+                    await message.channel.send(part)
+                except discord.errors.Forbidden:
+                    print("Alex: I am not able to send a message. Do I have the correct permissions on your server?")
 
 
 alex_intents = discord.Intents.default()
