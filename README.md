@@ -24,6 +24,8 @@ Video: https://youtu.be/RU6fHYSWW3Q
 
 4. **YOUR_OPENAI_API_KEY_HERE**
 
+5. You can now set your history length, I recommend no more than 100. You can also change the bot's identity and behavior through entering your prompt in the system_message.
+
 Now you can invite your bot to your server. It needs message and editing permissions.
 Then run main.py.
 
