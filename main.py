@@ -44,13 +44,15 @@ class Client(discord.Client):
         await self.tree.sync(guild=GUILD)
 
     async def on_message(self, message):
+        author = message.author
+
         if message.author == self.user:
             return
 
         input_content = message.content
         print(f"{message.author}: {input_content}")
 
-        self.conversation_history.append({"role": "system", "content": SYSTEM_MESSAGE})
+        self.conversation_history.append({"role": "system", "content": f"The user is {author.display_name}. {SYSTEM_MESSAGE}"})
         self.conversation_history.append({"role": "user", "content": input_content})
         self.conversation_history = trim_conversation_history(self.conversation_history)
 
